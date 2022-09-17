@@ -14,12 +14,12 @@ import java.sql.SQLException;
  * @author Lasith
  */
 public class Database {
-     private static final String DB_URL = "jdbc:mysql://localhost:3306/todo_app";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/todo_app";
     private static final String USER_NAME = "root";
     private static final String PASSWORD = "";
 
     public static Connection getConnection() throws SQLException, ClassNotFoundException{
-        Class.forName("com.mysql.jdbc.Driver"); 
+        Class.forName("com.mysql.cj.jdbc.Driver"); 
         Connection connection = null;
         
         connection = DriverManager.getConnection(DB_URL,USER_NAME,PASSWORD);

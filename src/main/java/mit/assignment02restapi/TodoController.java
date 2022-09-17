@@ -5,6 +5,10 @@
  */
 package mit.assignment02restapi;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
@@ -13,7 +17,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
 import javax.enterprise.context.RequestScoped;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
+import model.ToDo;
 
 /**
  * REST Web Service
@@ -34,10 +42,48 @@ public class TodoController {
     }
 
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String getAll() {
-        return "Hello";
+        return ToDo.find();
     }
+    
+    @POST
+    @Path("search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String search(String response) {
+        JsonElement responseElement = JsonParser.parseString(response);
+        JsonObject responseObj = responseElement.getAsJsonObject();
+        String keyword = responseObj.get("title").toString();
+        return ToDo.find(keyword);
+    }
+    
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String save(ToDo todo) {
+        return ToDo.save(todo);
+    }
+    
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String update(String request) {
+        JsonElement responseElement = JsonParser.parseString(request);
+        JsonObject responseObj = responseElement.getAsJsonObject();
+        int id = Integer.parseInt(responseObj.get("todo_id").toString());
+        String updatedTodo = responseObj.get("todo").toString();
+        ToDo todo = new Gson().fromJson(updatedTodo, ToDo.class);
+        return ToDo.update(todo, id);
+    }
+    
+    @DELETE
+    @Path("{todo_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String remove(@PathParam("todo_id") int todo_id) {
+        return ToDo.remove(todo_id);
+    }
+ 
 
 }
