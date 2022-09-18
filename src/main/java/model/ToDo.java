@@ -102,6 +102,7 @@ public class ToDo {
             
             while(resultSet.next()){
                 ToDo todo = new ToDo();
+                todo.setTodo_id(resultSet.getInt("todo_id"));
                 todo.setTitle(resultSet.getString("title"));
                 todo.setDescription(resultSet.getString("description"));
                 todo.setDate(resultSet.getString("date"));
