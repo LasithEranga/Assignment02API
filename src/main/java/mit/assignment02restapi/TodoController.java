@@ -47,15 +47,13 @@ public class TodoController {
         return ToDo.find();
     }
     
-    @POST
-    @Path("search")
-    @Consumes(MediaType.APPLICATION_JSON)
+    
+    @GET
+    @Path("{todo_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String search(String response) {
-        JsonElement responseElement = JsonParser.parseString(response);
-        JsonObject responseObj = responseElement.getAsJsonObject();
-        String keyword = responseObj.get("title").toString();
-        return ToDo.find(keyword);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String search(@PathParam("todo_id") int todo_id) {
+        return ToDo.find(todo_id);
     }
     
     @PUT
@@ -75,6 +73,13 @@ public class TodoController {
         String updatedTodo = responseObj.get("todo").toString();
         ToDo todo = new Gson().fromJson(updatedTodo, ToDo.class);
         return ToDo.update(todo, id);
+    }
+    
+    @POST
+    @Path("done/{todo_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String completedTasks(@PathParam("todo_id") int todo_id) {
+        return ToDo.markAsComplete(todo_id);
     }
     
     @DELETE

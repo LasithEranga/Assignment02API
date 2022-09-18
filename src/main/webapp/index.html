@@ -11,13 +11,19 @@
     />
     <style>
       .Personal {
-        background-color: rgba(23, 255, 147, 0.534);
+        background-color: #faf1cb;
+        color: #ffd117;
+        border: 1px solid #ffd117;
       }
       .Home {
-        background-color: rgba(164, 248, 248, 0.623);
+        background-color: #d1d1fa;
+        color: #0d6efd;
+        border: 1px solid #0d6efd;
       }
       .Work {
-        background-color: rgba(164, 248, 248, 0.623);
+        background-color: #ffecf0;
+        color: #e46882;
+        border: 1px solid #e46882;
       }
     </style>
     <script
@@ -29,14 +35,13 @@
     <div class="col-5">
       <div class="pt-3 ps-3 row m-0">
         <span class="fs-1 fw-semibold">Hello there ... </span>
-        <span class="fs-6 fw-semibold text-secondary"
-          >55 tasks not completed
+        <span class="fs-6 fw-semibold text-secondary" id="allTaskCount">55 tasks not completed
         </span>
         <div class="col-12 py-3 d-flex gap-4">
           <div class="bg-light shadow col-3">
             <div class="text-center py-2 pt-3">
               <i
-                class="fa-sharp fa-solid fa-briefcase bg-secondary text-primary p-3 rounded-circle"
+                class="fa-sharp fa-solid fa-briefcase p-3 rounded-circle" style="background-color: #ffecf0; color: #e46882;"
               ></i>
             </div>
             <div class="row text-center pb-3">
@@ -48,9 +53,7 @@
           </div>
           <div class="bg-light shadow col-3">
             <div class="text-center py-2 pt-3">
-              <i
-                class="fa-sharp fa-solid fa-briefcase bg-secondary text-primary p-3 rounded-circle"
-              ></i>
+              <i class="fa-sharp fa-solid fa-house-chimney text-primary p-3 rounded-circle" style="background-color: #d1d1fa;"></i>
             </div>
             <div class="row text-center pb-3">
               <span class="fw-semibold">Home</span>
@@ -61,9 +64,7 @@
           </div>
           <div class="bg-light shadow col-3">
             <div class="text-center py-2 pt-3">
-              <i
-                class="fa-sharp fa-solid fa-briefcase bg-secondary text-primary p-3 rounded-circle"
-              ></i>
+              <i class="fa-solid fa-blog p-3 rounded-circle" style="background-color: #faf1cb; color: #ffd117;" ></i>
             </div>
             <div class="row text-center pb-3">
               <span class="fw-semibold">Personal</span>
@@ -75,7 +76,7 @@
         </div>
       </div>
       <div class="ps-3 mb-2 pt-4">
-        <span class="fs-3 fw-semibold ps-3"> New Todo</span>
+        <span class="fs-3 fw-semibold ps-3" id="formHeading"> New Todo</span>
         <div class="d-flex me-1 mb-3 mt-2 ps-3">
           <div class="col-3">
             <label for="title">Title</label>
@@ -89,7 +90,7 @@
             <label for="title">Description</label>
           </div>
           <div class="col-7">
-            <input type="text" id="title" class="form-control" />
+            <input type="text" id="description" class="form-control" />
           </div>
         </div>
 
@@ -98,7 +99,11 @@
             <label for="title">Category</label>
           </div>
           <div class="col-7">
-            <input type="text" id="title" class="form-control" />
+            <select id="category" class="form-control">
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+            </select>
           </div>
         </div>
 
@@ -117,7 +122,7 @@
             value="Clear"
             class="btn btn-secondary px-4 me-2"
           />
-          <input type="button" value="Save" class="btn btn-primary px-4" />
+          <button type="button" id="btnSubmit" onclick="newTodo()" class="btn btn-primary px-4" >Save</button>
         </div>
       </div>
     </div>
@@ -133,11 +138,17 @@
     ></script>
 
     <script>
-      const todoList = [];
       const work_tasks = document.getElementById("work_tasks");
       const home_tasks = document.getElementById("home_tasks");
       const personal_tasks = document.getElementById("personal_tasks");
       const content = document.getElementById("content");
+      const title = document.getElementById("title");
+      const description = document.getElementById("description");
+      const category = document.getElementById("category");
+      const date = document.getElementById("date");
+      const time = document.getElementById("time");
+      const btnSubmit = document.getElementById("btnSubmit");
+      const formHeading = document.getElementById("formHeading");
 
       const getData = () => {
         let workTaskCount = 0;
@@ -145,6 +156,7 @@
         let personalTaskCount = 0;
 
         let htmlString = "";
+        let completedTasksHtml = "";
 
         fetch("http://localhost:8080/Assignment02RestApi/resources/todo", {
           method: "GET",
@@ -155,95 +167,240 @@
           .then((response) => response.json())
           .then((data) => {
             data.map((todo) => {
-
-
-                if(todo.category === "Home"){
-                    homeTaskCount++;
-                }else if(todo.category === "Work"){
-                    workTaskCount++;
-                }else if(todo.category === "Personal"){
-                    personalTaskCount++;
-                }
-
+              if (todo.category === "Home" && todo.state === "pending") {
+                homeTaskCount++;
+              } else if (todo.category === "Work" && todo.state === "pending") {
+                workTaskCount++;
+              } else if (todo.category === "Personal" && todo.state === "pending") {
+                personalTaskCount++;
+              }
 
               if (todo.state === "pending") {
                 htmlString += `
-                                    <div class="d-flex my-3 border p-2 ps-3 shadow-sm py-3 position-relative">
-                                            <div class=" me-3 pt-1">
-                                                <input type="radio" >
-                                            </div>
+                                      <div class="d-flex my-3 border p-2 ps-3 shadow-sm py-3 position-relative">
+                                              <div class=" me-3 pt-1">
+                                                  <input type="radio" onchange="markAsCompleted(${todo.todo_id})">
+                                              </div>
 
-                                            <div class="col-9">
-                                                <div>
-                                                    <span class="fw-semibold fs-5">${todo.title}</span>
-                                                    <span class="fw-semibold text-secondary ps-3">${todo.date} @ ${todo.time} </span>
-                                                </div>
-                                                <div>
-                                                    ${todo.description}
-                                                </div>
-                                            </div>
+                                              <div class="col-9">
+                                                  <div>
+                                                      <span class="fw-semibold fs-5">${todo.title}</span></br>
+                                                      <span class=" text-secondary ps-3" style="font-weight:500;">${todo.date} @ ${todo.time} </span>
+                                                  </div>
+                                                  <div>
+                                                      ${todo.description}
+                                                  </div>
+                                              </div>
 
-                                            <div class="col">
-                                                
-                                                <div class="pt-2 pb-5 d-flex justify-content-end pe-3">
-                                                    <span class=" p-1 px-2 rounded-pill ${todo.category} w-100 text-center"> ${todo.category}</span> 
-                                                </div>
-                                                
-                                            </div>
-                                            <div class="position-absolute " style="right: 30px;bottom: 10px;">
-                                                    <button class="me-2  bg-transparent border-0 text-primary"><i class="fa-solid fa-pen-to-square"></i></button>
-                                                    <button class="bg-transparent border-0"><i class="fa-sharp fa-solid fa-trash text-danger"></i></button>
-                                            </div>
-                                            </div>`;
+                                              <div class="col">
+
+                                                  <div class="pt-2 pb-5 d-flex justify-content-end pe-3">
+                                                      <span class=" p-1 px-2 rounded-pill ${todo.category} w-100 text-center"> ${todo.category}</span>
+                                                  </div>
+
+                                              </div>
+                                              <div class="position-absolute " style="right: 30px;bottom: 15px;">
+                                                      <button class="me-2  bg-transparent border-0 text-primary" onclick="setUpdateView(${todo.todo_id})"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                      <button class="bg-transparent border-0"><i class="fa-sharp fa-solid fa-trash text-danger" onclick="deleteTodo(${todo.todo_id})"></i></button>
+                                              </div>
+                                              </div>`;
               } else {
-                htmlString += `
-                    <div class="d-flex my-3 border p-2 ps-3 shadow-sm py-3 position-relative">
-                                            <div class=" me-3 pt-1">
-                                                <i class="fa-solid fa-circle-check text-success fs-4"></i>
-                                            </div>
+                completedTasksHtml += `
+                      <div class="d-flex my-3 border p-2 ps-3 shadow-sm py-3 position-relative">
+                                              <div class=" me-3 pt-1">
+                                                  <i class="fa-solid fa-circle-check text-success fs-4"></i>
+                                              </div>
 
-                                            <div class="col-9">
-                                                <div>
-                                                    <span class="fw-semibold fs-5">${todo.title}</span>
-                                                    <span class="fw-semibold text-secondary ps-3">${todo.date} @ ${todo.time} </span>
-                                                </div>
-                                                <div>
-                                                    ${todo.description}
-                                                </div>
-                                            </div>
+                                              <div class="col-9">
+                                                  <div>
+                                                      <span class="fw-semibold fs-5">${todo.title}</span><br>
+                                                      <span class="text-secondary " style="font-weight:600;">${todo.date} @ ${todo.time} </span>
+                                                  </div>
+                                                  <div>
+                                                      ${todo.description}
+                                                  </div>
+                                              </div>
 
-                                            <div class="col">
-                                                
-                                                <div class="pt-2 pb-5 d-flex justify-content-end pe-3">
-                                                    <span class=" p-1 px-2 rounded-pill ${todo.category} w-100 text-center"> ${todo.category}</span> 
-                                                </div>
-                                                
-                                            </div>
-                                            <div class="position-absolute" style="right: 30px;bottom: 10px;">
-                                                <button class="me-2  bg-transparent border-0 text-primary"><i class="fa-solid fa-pen-to-square"></i></button>
-                                                <button class="bg-transparent border-0"><i class="fa-sharp fa-solid fa-trash text-danger"></i></button>
-                                            </div>
-                                            </div>`;
+                                              <div class="col">
+
+                                                  <div class="pt-2 pb-5 d-flex justify-content-end pe-3">
+                                                      <span class=" p-1 px-2 rounded-pill ${todo.category} w-100 text-center"> ${todo.category}</span>
+                                                  </div>
+
+                                              </div>
+                                              <div class="position-absolute " style="right: 30px;bottom: 15px;">
+                                                  <button class="me-2  bg-transparent border-0 text-primary" onclick="setUpdateView(${todo.todo_id})"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                  <button class="bg-transparent border-0"><i class="fa-sharp fa-solid fa-trash text-danger" onclick="deleteTodo(${todo.todo_id})"></i></button>
+                                              </div>
+                                              </div>`;
               }
             });
-            content.innerHTML = htmlString;
-            setCount(work_tasks,workTaskCount)
-            setCount(home_tasks,homeTaskCount)
-            setCount(personal_tasks,personalTaskCount)
+            content.innerHTML = htmlString + completedTasksHtml;
+            setCount(work_tasks, workTaskCount);
+            setCount(home_tasks, homeTaskCount);
+            setCount(personal_tasks, personalTaskCount);
+            setCount(allTaskCount, workTaskCount+homeTaskCount+personalTaskCount);
+
+            allTaskCount.innerHTML += " to be completed";
           })
           .catch((error) => {});
       };
       getData();
 
+
       const setCount = (element, count) => {
-        if(count>1){
-            element.innerHTML = count + " tasks";
-        }else if(count == 1){
-            element.innerHTML = count + " task";
-        }else{
-            element.innerHTML = count + " task";
+        if (count > 1) {
+          element.innerHTML = count + " tasks";
+        } else if (count == 1) {
+          element.innerHTML = count + " task";
+        } else {
+          element.innerHTML = count + " task";
         }
-      }
+      };
+
+
+      const deleteTodo = (id) => {
+        fetch(
+          "http://localhost:8080/Assignment02RestApi/resources/todo/" + id,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-type": "application/json",
+            },
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.message);
+            getData();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      };
+
+      const newTodo = () => {
+        let todoToSave = {
+          title: title.value,
+          description: description.value,
+          date: date.value,
+          time: time.value,
+          state: "pending",
+          category: category.value,
+        };
+
+        fetch("http://localhost:8080/Assignment02RestApi/resources/todo", {
+          method: "PUT",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(todoToSave),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.message);
+            clearView();
+            getData();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      };
+
+      const updateTodo = (id) => {
+        let todoToUpdate = {
+          todo_id: id,
+          todo: {
+            title: title.value,
+            description: description.value,
+            date: date.value,
+            time: time.value,
+            state: "pending",
+            category: category.value,
+          },
+        };
+
+        fetch("http://localhost:8080/Assignment02RestApi/resources/todo", {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(todoToUpdate),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.message);
+            btnSubmit.innerText = "Save";
+            btnSubmit.setAttribute('onclick',`newTodo()`)
+            formHeading.innerHTML = "New Todo";
+            clearView(); 
+            getData();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      };
+
+
+      const markAsCompleted = (id) => {
+        let todoToUpdate = {
+          todo_id: id,
+          todo: {
+            state: "completed",
+          },
+        };
+
+        fetch(`http://localhost:8080/Assignment02RestApi/resources/todo/done/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.message);
+            getData();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      };
+
+
+      const setUpdateView = (id) => {
+        
+
+        fetch(`http://localhost:8080/Assignment02RestApi/resources/todo/${id}`, {
+          method: "GET",
+          headers: {
+              "Content-type": "application/json",
+            },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.message);
+            title.value = data.title;
+            description.value = data.description;
+            date.value = data.date;
+            time.value = data.time;
+            category.value = data.category;
+            btnSubmit.innerText = "Update";
+            btnSubmit.setAttribute('onclick',`updateTodo(${id})`)
+            formHeading.innerHTML = "Update Todo";
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        clearView();
+      };
+
+      const clearView = () => {
+        title.value = "";
+        description.value = "";
+        date.value = "";
+        time.value = "";
+        category.value = "Home";
+      };
     </script>
   </body>
 </html>
